@@ -1,0 +1,15 @@
+.success {
+  background-color: lightgreen;
+}
+
+.alert {
+  background-color: lightcoral;
+}
+
+.notification {
+  border: 1px solid black;
+  text-align: center;
+  padding: .5em 0;
+  margin: 1em auto;
+  width: 50%;
+}
