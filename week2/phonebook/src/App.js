@@ -104,6 +104,7 @@ class App extends React.Component {
       if (confirm) personService
         .replace({ name: match.name, number: this.state.newNumber, id: match.id })
         .then(person => {
+          console.log(person);
           this.handleAdd(
             this.state.persons.map(p => p.id === person.id ? person : p),
             { message: `Päivitettiin ${person.name}`, type: 'success' }
