@@ -13,8 +13,8 @@ const url = `mongodb://${process.env.PB_MONGO_USER}:${process.env.PB_MONGO_PW}@d
   if (process.argv.length === 4) {
     const name = process.argv[2];
     const number = process.argv[3];
-  
-    await new Contact({name, number}).save();
+
+    await new Contact({ name, number }).save();
     console.log(`Saved ${name} ${number}`);
   } else {
     const contacts = await Contact.find({});

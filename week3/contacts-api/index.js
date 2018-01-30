@@ -1,14 +1,16 @@
-const express = require('express')
+const express = require('express');
 const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const mongoose = require('mongoose');
 
 const Contact = require('./models/contact');
 
-const getRandomInt = max => Math.floor(Math.random() * Math.floor(max))
+if ( process.env.NODE_ENV !== 'production' ) {
+  require('dotenv').config();
+}
 
 const loadMiddleware = app => {
-  morgan.token('body', (req, res) => JSON.stringify(req.body));
+  morgan.token('body', req => JSON.stringify(req.body));
   app.use(bodyParser.json());
   app.use(morgan(':method :url :body :status :res[content-length] - :response-time ms'));
   app.use(express.static('front'));
@@ -38,7 +40,7 @@ const loadRoutes = app => {
 
   app.delete('/api/persons/:id', async (req, res) => {
     try {
-      await Contact.remove(req.params.id)
+      await Contact.remove(req.params.id);
       res.status(204).end();
     } catch (e) {
       console.log(e);
@@ -46,7 +48,8 @@ const loadRoutes = app => {
     }
   });
 
-  app.get('/info', (req, res) => {
+  app.get('/info', async (req, res) => {
+    const persons = await Contact.findAll();
     res.send(`luettelossa on ${persons.length} henkilön tiedot.\n${new Date()}`);
   });
 
@@ -83,7 +86,7 @@ const loadRoutes = app => {
 
   const app = express();
 
-  const url = `mongodb://${process.env.PB_MONGO_USER}:${process.env.PB_MONGO_PW}@ds117178.mlab.com:17178/contacts`;
+  const url = process.env.MONGODB_URI;
 
   await mongoose.connect(url);
 
