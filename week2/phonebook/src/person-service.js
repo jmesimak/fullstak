@@ -1,26 +1,25 @@
 import axios from 'axios';
 
-const baseUrl = 'http://localhost:3001';
-const personsUrl = `${baseUrl}/persons`;
+const baseUrl = '/api/persons';
 
 const personService = {
   getAll: () => {
     return axios
-      .get(personsUrl)
+      .get(baseUrl)
       .then(({ data: persons }) => persons);
   },
   add: person => {
     return axios
-      .post(personsUrl, person)
+      .post(baseUrl, person)
       .then(({ data: createdPerson }) => createdPerson);
   },
   remove: id => {
     return axios
-      .delete(`${personsUrl}/${id}`);
+      .delete(`${baseUrl}/${id}`);
   },
   replace: person => {
     return axios
-      .put(`${personsUrl}/${person.id}`, person)
+      .put(`${baseUrl}/${person.id}`, person)
       .then(({ data: updatedPerson }) => updatedPerson);
   }
 };
