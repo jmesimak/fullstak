@@ -1,0 +1,11 @@
+.blog-form input {
+  display: block;
+  margin-bottom: 1em;
+  height: 2em;
+  padding: .2em;
+}
+
+.blog-form button {
+  height: 2em;
+  width: 5em;
+}

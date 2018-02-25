@@ -1,0 +1,12 @@
+.notification {
+  padding: 1em;
+  border: 1px solid black;
+}
+
+.notification .error {
+  color: red;
+}
+
+.notification .success {
+  color: green;
+}

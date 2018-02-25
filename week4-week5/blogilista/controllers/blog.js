@@ -35,7 +35,7 @@ blogsRouter.post('/', async (request, response) => {
     const user = request.user
 
     if (!user) return response.status(400).json({ message: `No user found for id ${userId}` })
-    const blogData = { title, author, user: user._id }
+    const blogData = { title, author, url, user: user._id }
     const blog = await new Blog(blogData).save()
 
     await User.findOneAndUpdate({ _id: user._id }, { $push: { blogs: blog._id } })
@@ -48,8 +48,6 @@ blogsRouter.post('/', async (request, response) => {
 blogsRouter.delete('/:id', async (request, response) => {
   try {
     const toDelete = await Blog.findById(request.params.id)
-    if (!request.user)
-      return response.status(403).json({ message: 'Must be logged in to delete this entry' })
     if (!request.user._id.equals(toDelete.user))
       return response.status(403).json({ message: 'User is not authorized to delete this entry' })
     await Blog.remove({ _id: request.params.id })
