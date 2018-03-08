@@ -19,7 +19,7 @@ describe('<SimpleBlog />', () => {
   it('renders passed likes', () => {
     const simpleBlogComponent = shallow(<SimpleBlog blog={simpleBlog} onClick={handler} />)
     const likeArea = simpleBlogComponent.find('.like-area')
-    expect(likeArea.text()).toContain(`10 likes`)
+    expect(likeArea.text()).toContain('10 likes')
   })
 
   it('handles clicks', () => {

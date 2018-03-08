@@ -4,7 +4,6 @@ import App from './App'
 import Blog from './components/Blog'
 import Login from './components/Login'
 jest.mock('./services/blogs')
-import blogsService from './services/blogs'
 
 describe('<App />', () => {
   let app

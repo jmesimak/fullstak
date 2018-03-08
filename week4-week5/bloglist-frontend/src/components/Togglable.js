@@ -1,4 +1,5 @@
-import React, { Component } from 'react'
+import React, { Component } from 'react'
+import { Button } from 'semantic-ui-react'
 
 class Togglable extends Component {
   constructor(props) {
@@ -10,7 +11,7 @@ class Togglable extends Component {
     this.flipVisibility = this.flipVisibility.bind(this)
   }
 
-  flipVisibility(show) {
+  flipVisibility() {
     const displayStatus = this.state.toggled ? 'Show' : 'Hide'
     this.setState({ toggled: !this.state.toggled, displayStatus })
   }
@@ -23,9 +24,9 @@ class Togglable extends Component {
     return (
       <div>
         <div>
-          { this.state.toggled && this.props.children }  
+          { this.state.toggled && this.props.children }
         </div>
-        <button onClick={this.flipVisibility}>{this.state.displayStatus} {this.props.name}</button>
+        <Button primary onClick={this.flipVisibility}>{this.state.displayStatus} {this.props.name}</Button>
       </div>
     )
   }

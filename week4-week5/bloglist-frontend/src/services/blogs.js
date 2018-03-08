@@ -7,15 +7,15 @@ export const getAll = () => {
 }
 
 export const postNew = async (blog, token) => {
-  const response = await axios.post(baseUrl, blog, { headers: { Authorization: `Bearer ${token}` } } )
-  return response.body
+  const response = await axios.post(baseUrl, blog, { headers: { Authorization: `Bearer ${token}` } } )
+  return response.data
 }
 
 export const like = async (blog, token) => {
   const response = await axios.put(
     `${baseUrl}/${blog.id}`,
     { ...blog, user: blog.user._id, likes: blog.likes + 1 },
-    { headers: { Authorization: `Bearer ${token}` } }
+    { headers: { Authorization: `Bearer ${token}` } }
   )
   return response.body
 }
@@ -23,9 +23,17 @@ export const like = async (blog, token) => {
 export const remove = async (blog, token) => {
   const response = await axios.delete(
     `${baseUrl}/${blog.id}`,
-    { headers: { Authorization: `Bearer ${token}` } }
+    { headers: { Authorization: `Bearer ${token}` } }
   )
   return response.body
 }
 
-export default { getAll, postNew, like, remove }
+export const comment = async (blog, comment) => {
+  const response = await axios.post(
+    `${baseUrl}/${blog.id}/comments`,
+    { comment }
+  )
+  return response.body
+}
+
+export default { getAll, postNew, like, remove, comment }

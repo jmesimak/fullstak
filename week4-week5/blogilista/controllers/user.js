@@ -6,7 +6,9 @@ const User = require('../models/user')
 const SALT_ROUNDS = 10
 
 usersRouter.get('/', async (request, response) => {
-  response.json((await User.find({}).populate('blogs')).map(User.formatUser))
+  const users = await User.find().populate('blogs')
+  console.log(users)
+  response.json(users.map(User.formatUser))
 })
 
 usersRouter.post('/', async (request, response) => {

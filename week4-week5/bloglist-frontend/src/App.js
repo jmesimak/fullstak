@@ -1,112 +1,135 @@
 import React from 'react'
-import uuid from 'uuid'
+import { BrowserRouter as Router, Route, Link } from 'react-router-dom'
+import { connect } from 'react-redux'
+import { Container, Header, Menu, Table } from 'semantic-ui-react'
 import Blog from './components/Blog'
 import blogsService from './services/blogs'
+import Users from './components/Users'
+import User from './components/User'
 import Login from './components/Login'
 import BlogForm from './components/BlogForm'
 import Notification from './components/Notification'
 import Togglable from './components/Togglable'
-import notificationService from './services/notification'
+import { createNotification, clearNotification } from './reducers/notification'
+import { initUsers } from './reducers/users'
+import { initBlogs } from './reducers/blogs'
+import { initUser, logOutUser } from './reducers/user'
 
 class App extends React.Component {
   constructor(props) {
     super(props)
-    this.state = {
-      blogs: [],
-    }
-    this.getUser = this.getUser.bind(this)
-    this.logout = this.logout.bind(this)
     this.setUser = this.setUser.bind(this)
-    this.likeBlog = this.likeBlog.bind(this)
-    this.updateBlogs = this.updateBlogs.bind(this)
-    this.setNotification = this.setNotification.bind(this)
   }
 
-  componentDidMount() {
-    notificationService.setNotificationSetter(this.setNotification)
-
-    this.updateBlogs()
-    const jsonUser = window.localStorage.getItem('currentUser')
-    if (jsonUser) {
-      const user = JSON.parse(jsonUser)
-      this.setUser(user)
-    }
-  }
-
-  async updateBlogs() {
-    const blogs = await blogsService.getAll()
-    this.setState({ blogs })
-    if (this.blogFormToggler) this.blogFormToggler.hide()
-  }
-
-  logout = async (event) => {
-    window.localStorage.removeItem('currentUser')
-    this.setState({ user: undefined })
-  }
-
-  likeBlog = async (blog) => {
-    await blogsService.like(blog, this.state.user.token)
-    this.updateBlogs()
+  async componentDidMount() {
+    this.props.initUsers()
+    this.props.initBlogs()
+    this.props.initUser()
   }
 
   removeBlog = async (blog) => {
     try {
-      await blogsService.remove(blog, this.state.user.token)
-      this.updateBlogs()
+      await blogsService.remove(blog, this.props.user.token)
     } catch (e) {
-      this.setNotification('Could not delete blog, does it belong to you?', 'error')
+      this.props.createNotification('Could not delete blog, does it belong to you?', 'error')
+      setTimeout(this.props.clearNotification, 5000)
     }
   }
-  
+
   setUser = (user) => {
     this.setState({ user })
   }
 
-  getUser = () => {
-    return this.state.user
-  }
-
-  setNotification = (message, type) => {
-    const id = uuid.v4()
-    this.setState({ notification: { message, type, id } })
-    setTimeout(() => {
-      if (id === this.state.notification.id) this.setState({ notification: undefined })
-    }, 7000) 
-  }
-
   render() {
     const blogs = () => (
-      <div>
-      <h2>blogs</h2>
-        {this.state.blogs.sort((a,b) => a.likes < b.likes ? 1 : -1).map(blog => 
-          <Blog key={blog.id} blog={blog} likeBlog={this.likeBlog} removeBlog={this.removeBlog} getUser={this.getUser} />
-        )}
-      </div>
+      <Table celled>
+        <Table.Header>
+          <Table.Row>
+            <Table.HeaderCell>Blog</Table.HeaderCell>
+            <Table.HeaderCell>Author</Table.HeaderCell>
+            <Table.HeaderCell>likes</Table.HeaderCell>
+          </Table.Row>
+        </Table.Header>
+        <Table.Body>
+          {this.props.blogs.sort((a,b) => a.likes < b.likes ? 1 : -1).map(blog =>
+            <Table.Row key={blog.id}>
+              <Table.Cell>
+                <Link key={blog.id}to={`/blogs/${blog.id}`} >
+                  <h3>{blog.title}</h3>
+                </Link>
+              </Table.Cell>
+              <Table.Cell>{blog.author}</Table.Cell>
+              <Table.Cell>{blog.likes}</Table.Cell>
+            </Table.Row>
+          )}
+        </Table.Body>
+      </Table>
     )
 
     const loggedInUser = () => (
       <div>
-        <p>{this.state.user.username} logged in</p>
-        <button onClick={this.logout}>Logout</button>
+        <p>{this.props.user.username} logged in</p>
+        <button onClick={this.props.logOutUser}>Logout</button>
       </div>
     )
 
     const blogForm = () => (
       <Togglable name="blog form" ref={component => this.blogFormToggler = component}>
-        <BlogForm updateBlogs={this.updateBlogs} user={this.state.user} />
+        <BlogForm user={this.props.user} />
       </Togglable>
     )
-    
 
     return (
       <div>
-        { this.state.notification && <Notification message={this.state.notification.message} type={this.state.notification.type} /> }
-        { this.state.user && loggedInUser() }
-        { this.state.user ? blogs() : <Login setUser={this.setUser} />}
-        { this.state.user && blogForm() }
+        <Router>
+          <Container>
+            <div style={{ marginTop: '1em' }}>
+              <Menu>
+                <Menu.Item><Header as='h1' color='olive'>blog.keeper</Header></Menu.Item>
+                <Menu.Item name='blogs'><Link to="/">blogs</Link></Menu.Item>
+                <Menu.Item name='users'><Link to="/users">users</Link></Menu.Item>
+                <Menu.Item position='right'>{ this.props.user.loggedIn && loggedInUser() }</Menu.Item>
+              </Menu>
+              { this.props.notification.message && <Notification message={this.props.notification.message} type={this.props.notification.notifType} /> }
+              <Route exact path="/" render={() => (
+                <div>
+                  { this.props.user.loggedIn && blogForm() }
+                  { this.props.user.loggedIn ? blogs() : <Login setUser={this.setUser} />}
+                </div>
+              )} />
+              <Route exact path="/users" render={() => (
+                <Users users={this.props.users} />
+              )} />
+              <Route path="/users/:id" render={({ match }) => (
+                <User user={this.props.users.find(u => u.id === match.params.id) || { blogs: [] }} />
+              )} />
+              <Route path="/blogs/:id" render={({ match }) => (
+                <Blog blog={this.props.blogs.find(b => b.id === match.params.id) || {}} token={this.props.user.token} removeBlog={this.removeBlog} />
+              )} />
+            </div>
+          </Container>
+        </Router>
       </div>
-    );
+    )
   }
 }
 
-export default App;
+const mapDispatchToProps = {
+  createNotification,
+  clearNotification,
+  initUsers,
+  initBlogs,
+  initUser,
+  logOutUser
+}
+
+const mapStateToProps = state => {
+  return ({
+    notification: state.notification,
+    users: state.users,
+    blogs: state.blogs,
+    user: state.user,
+  })
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(App)

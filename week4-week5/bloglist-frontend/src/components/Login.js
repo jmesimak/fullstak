@@ -1,8 +1,10 @@
-import React, { Component } from 'react'
+import React, { Component } from 'react'
+import { connect } from 'react-redux'
 import PropTypes from 'prop-types'
+import { Form, Header, Button, Card } from 'semantic-ui-react'
 
-import loginService from '../services/login'
-import notificationService from '../services/notification'
+import { createNotification, clearNotification } from '../reducers/notification'
+import { logInUser } from '../reducers/user'
 
 class Login extends Component {
 
@@ -10,32 +12,22 @@ class Login extends Component {
     super(props)
     this.state = {
       username: '',
-      password: ''
+      password: '',
     }
     this.handleLoginFieldChange = this.handleLoginFieldChange.bind(this)
+    this.login = this.login.bind(this)
   }
 
-  static propTypes = {
-    setUser: PropTypes.func.isRequired,
-  }
-
-  login = async (event) => {
+  async login(event) {
     event.preventDefault()
-    try{
-      const loginResponse = await loginService.login({
-        username: this.state.username,
-        password: this.state.password
-      })
-      const user = {
-        token: loginResponse.token,
-        username: this.state.username,
-      }
-      window.localStorage.setItem('currentUser', JSON.stringify(user))
-      this.setState({ username: '', password: ' '})
-      this.props.setUser(user)
-      notificationService.setNotification('Kirjauduttiin onnistuneesti', 'success')
+    try {
+      await this.props.logInUser(this.state.username, this.state.password)
+      this.setState({ username: '', password: '' })
+      this.props.createNotification('Logged in', 'success')
+      setTimeout(this.props.clearNotification, 5000)
     } catch(exception) {
-      notificationService.setNotification('Kirjautuminen epäonnistui, tarkasta käyttäjätunnus ja salasana', 'error')
+      this.props.createNotification('Failed to log in', 'error')
+      setTimeout(this.props.clearNotification, 5000)
     }
   }
 
@@ -45,33 +37,46 @@ class Login extends Component {
 
   render() {
     return (
-      <div className="login-form">
-        <h2>Kirjaudu</h2>
-
-        <form onSubmit={this.login}>
-          <div>
-            käyttäjätunnus
-            <input
-              type="text"
-              name="username"
-              value={this.state.username}
-              onChange={this.handleLoginFieldChange}
-            />
-          </div>
-          <div>
-            salasana
-            <input
-              type="password"
-              name="password"
-              value={this.state.password}
-              onChange={this.handleLoginFieldChange}
-            />
-          </div>
-          <button type="submit">kirjaudu</button>
-        </form>
-      </div>
+      <Card>
+        <Card.Content>
+          <Card.Description>
+            <Header as='h2'>Login</Header>
+            <Form onSubmit={this.login}>
+              <Form.Field>
+                <label>username</label>
+                <input
+                  type="text"
+                  name="username"
+                  value={this.state.username}
+                  onChange={this.handleLoginFieldChange}
+                />
+              </Form.Field>
+              <Form.Field>
+                <label>password</label>
+                <input
+                  type="password"
+                  name="password"
+                  value={this.state.password}
+                  onChange={this.handleLoginFieldChange}
+                />
+              </Form.Field>
+              <Button type="submit">Submit</Button>
+            </Form>
+          </Card.Description>
+        </Card.Content>
+      </Card>
     )
   }
 }
 
-export default Login
+Login.propTypes = {
+  setUser: PropTypes.func.isRequired,
+}
+
+const mapDispatchToProps = {
+  createNotification, clearNotification, logInUser
+}
+
+const mapStateToProps = () => ({})
+
+export default connect(mapStateToProps, mapDispatchToProps)(Login)
